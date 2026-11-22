@@ -267,6 +267,21 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
 .mini-btn.red{background:#b3352c}
 .linklike{background:none;border:none;color:var(--muted);font-weight:600;font-size:13.5px;text-decoration:underline}
 @media(max-width:640px){.auth-btn{padding:10px 15px;font-size:13.5px}}
+/* mobile: pill nav you can swipe, big tap targets */
+.desk-pill{background:var(--ink)!important;color:var(--paper)!important;border-color:var(--ink)!important}
+@media(max-width:760px){
+  .nav-links{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:8px;padding:2px 2px 8px;margin-top:10px}
+  .nav-links::-webkit-scrollbar{display:none}
+  .nav-links a{white-space:nowrap;background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 15px;font-size:14px;flex:0 0 auto}
+  .bar{padding:12px 0 4px}
+  .hero{padding:38px 0 30px}
+  .hero h1{font-size:41px}
+  .stats{gap:14px}
+  .stat b{font-size:25px}
+  section{padding:52px 0}
+  .sheet{padding:26px 20px}
+  .live-card{padding:19px}
+}
 
 /* reveal */
 .rv{opacity:0;transform:translateY(22px);transition:opacity .65s ease, transform .65s cubic-bezier(.22,.8,.3,1)}
@@ -285,6 +300,7 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
       <a href="#products">Products</a>
       <a href="#how">How it works</a>
       <a href="#" id="ordersNav">My Orders</a>
+      <a href="#" id="deskNav" class="desk-pill">Owner's Desk</a>
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -430,7 +446,7 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
     <span><b>Spider Exchange</b> — Trusted Exchange &amp; Accounts</span>
     <span>WhatsApp: <b>+234 707 856 6125</b></span>
     <span>© 2026 Spider Exchange. All rights reserved.</span>
-    <span><a href="#" id="adminLink" class="linklike" style="color:var(--muted)">Admin</a></span>
+    <span><a href="#" id="adminLink" class="linklike" style="color:var(--muted)">Owner's Desk (Admin)</a></span>
   </div>
 </footer>
 
@@ -844,6 +860,7 @@ document.getElementById("adminLink").addEventListener("click", async e => {
   document.getElementById("adminGate").style.display = "block";
   document.getElementById("adminBody").style.display = "none";
 });
+document.getElementById("deskNav").addEventListener("click", e => { e.preventDefault(); document.getElementById("adminLink").click(); });
 document.getElementById("adGo").addEventListener("click", async () => {
   const v = document.getElementById("adPass").value;
   const msg = document.getElementById("adMsg");
