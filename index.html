@@ -236,6 +236,38 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
 .sheet .btn{width:100%;justify-content:center;margin-top:20px;padding:15px}
 .x{float:right;background:var(--paper);border:1px solid var(--line);width:34px;height:34px;border-radius:50%;font-size:16px;line-height:1}
 
+/* account + orders + admin */
+.auth-btn{background:var(--ink);color:var(--paper);border:none;border-radius:999px;padding:11px 19px;font-weight:700;font-size:14px}
+.auth-btn:hover{background:var(--green-deep)}
+.user-chip{display:none;align-items:center;gap:8px;background:#e2f4e8;border:1px solid #bfe6cd;color:var(--green-deep);font-weight:700;font-size:13.5px;padding:9px 14px;border-radius:999px;cursor:pointer}
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tabs button{flex:1;padding:11px;border-radius:11px;border:1.5px solid var(--line);background:var(--paper);font-weight:700;font-size:14.5px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.ord{border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:12px;background:var(--paper)}
+.ord .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.ord .code{font-weight:800;letter-spacing:.05em;font-size:13px;color:var(--muted)}
+.ord b{font-size:15.5px}
+.track{display:flex;align-items:center;gap:0;margin:14px 0 4px}
+.track .stp{flex:1;text-align:center;position:relative;font-size:11px;font-weight:700;color:var(--muted);padding-top:16px}
+.track .stp::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:#d8d0ba;border:2px solid var(--card)}
+.track .stp::after{content:"";position:absolute;top:9px;left:calc(-50% + 8px);width:calc(100% - 16px);height:2.5px;background:#d8d0ba}
+.track .stp:first-child::after{display:none}
+.track .stp.done{color:var(--green-deep)}
+.track .stp.done::before{background:var(--green)}
+.track .stp.done::after{background:var(--green)}
+.st{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:99px}
+.st-placed{background:#eef0e6;color:#5c665c;border:1px solid var(--line)}
+.st-processing{background:var(--amber-soft);color:#8a5d07;border:1px solid #f0d48a}
+.st-completed{background:#e2f4e8;color:var(--green-deep);border:1px solid #bfe6cd}
+.st-cancelled{background:#fde8e8;color:#a12b2b;border:1px solid #f2b8b8}
+.empty{color:var(--muted);font-size:14.5px;text-align:center;padding:22px 6px}
+.desk-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px;background:var(--paper);font-size:13.5px}
+.desk-row select,.desk-row input{padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit;background:#fff}
+.mini-btn{border:none;border-radius:9px;padding:8px 13px;font-weight:700;font-size:13px;background:var(--ink);color:var(--paper)}
+.mini-btn.red{background:#b3352c}
+.linklike{background:none;border:none;color:var(--muted);font-weight:600;font-size:13.5px;text-decoration:underline}
+@media(max-width:640px){.auth-btn{padding:10px 15px;font-size:13.5px}}
+
 /* reveal */
 .rv{opacity:0;transform:translateY(22px);transition:opacity .65s ease, transform .65s cubic-bezier(.22,.8,.3,1)}
 .rv.in{opacity:1;transform:none}
@@ -252,11 +284,14 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
     <nav class="nav-links">
       <a href="#products">Products</a>
       <a href="#how">How it works</a>
+      <a href="#" id="ordersNav">My Orders</a>
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </nav>
     <div style="display:flex;gap:10px;align-items:center">
       <span class="online"><span class="dot"></span>Online now</span>
+      <button class="auth-btn" id="authBtn">Log in</button>
+      <span class="user-chip" id="userChip"></span>
       <a class="btn btn-wa" href="https://wa.me/2347078566125?text=Hello%20Spider%20Exchange%2C%20I%20have%20a%20question" target="_blank" rel="noopener" style="padding:11px 19px">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.9-4.45 9.9-9.91C21.94 6.45 17.5 2 12.04 2zm0 18.13a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 4.54 0 8.24 3.7 8.24 8.24 0 4.55-3.7 8.24-8.24 8.24zm4.52-6.16c-.25-.13-1.47-.72-1.69-.81-.22-.08-.39-.13-.55.13-.16.25-.63.8-.77.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.55-1.35-.77-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.68.31-.25.25-1 .97-1 2.37s1.02 2.75 1.16 2.94c.15.19 2.01 3.07 4.87 4.3.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.47-.6 1.8-1.22.33-.61.33-1.14.23-1.25-.1-.1-.23-.16-.48-.28z"/></svg>
         WhatsApp
@@ -332,10 +367,10 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
         <p>Four small steps. Most of it happens on the WhatsApp chat you already know how to use.</p>
       </div>
       <div class="steps">
-        <div class="step rv"><div class="n">STEP 01</div><h3>Pick a product</h3><p>Choose what you need from the catalogue above and press Order Now.</p></div>
-        <div class="step rv"><div class="n">STEP 02</div><h3>Send your details</h3><p>The order opens on WhatsApp with everything pre-filled. Add your details and send.</p></div>
-        <div class="step rv"><div class="n">STEP 03</div><h3>We process</h3><p>Your order moves to Processing, then Completed. We update you at each stage.</p></div>
-        <div class="step rv"><div class="n">STEP 04</div><h3>You receive</h3><p>Login details, numbers or bank payment land with you — fast, and confirmed on chat.</p></div>
+        <div class="step rv"><div class="n">STEP 01</div><h3>Create account</h3><p>Sign up free with your name and WhatsApp number — it takes seconds.</p></div>
+        <div class="step rv"><div class="n">STEP 02</div><h3>Place order</h3><p>Choose a product, press Order Now, and confirm on WhatsApp. Your order is saved to your account.</p></div>
+        <div class="step rv"><div class="n">STEP 03</div><h3>We process</h3><p>Your order moves to Processing, then Completed — track every step inside your account.</p></div>
+        <div class="step rv"><div class="n">STEP 04</div><h3>Message WhatsApp</h3><p>Any question at any point, one line: +234 707 856 6125. You receive everything on chat.</p></div>
       </div>
     </div>
   </section>
@@ -395,12 +430,81 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
     <span><b>Spider Exchange</b> — Trusted Exchange &amp; Accounts</span>
     <span>WhatsApp: <b>+234 707 856 6125</b></span>
     <span>© 2026 Spider Exchange. All rights reserved.</span>
+    <span><a href="#" id="adminLink" class="linklike" style="color:var(--muted)">Admin</a></span>
   </div>
 </footer>
 
 <a class="wa-float" href="https://wa.me/2347078566125?text=Hello%20Spider%20Exchange" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
   <svg viewBox="0 0 24 24" fill="#fff"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.9-4.45 9.9-9.91C21.94 6.45 17.5 2 12.04 2zm0 18.13a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 4.54 0 8.24 3.7 8.24 8.24 0 4.55-3.7 8.24-8.24 8.24zm4.52-6.16c-.25-.13-1.47-.72-1.69-.81-.22-.08-.39-.13-.55.13-.16.25-.63.8-.77.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.55-1.35-.77-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.68.31-.25.25-1 .97-1 2.37s1.02 2.75 1.16 2.94c.15.19 2.01 3.07 4.87 4.3.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.47-.6 1.8-1.22.33-.61.33-1.14.23-1.25-.1-.1-.23-.16-.48-.28z"/></svg>
 </a>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <button class="x" data-close="authOverlay" aria-label="Close">✕</button>
+    <h3 id="authTitle">Welcome back</h3>
+    <p class="sub">Your account lets you track every order in one place.</p>
+    <div class="tabs">
+      <button id="tabLogin" class="on">Log in</button>
+      <button id="tabSignup">Sign up</button>
+    </div>
+    <div id="signupFields">
+      <label class="fl" for="suName">Your name</label>
+      <input class="tf" id="suName" type="text" placeholder="e.g. Chidi Okafor" autocomplete="name">
+    </div>
+    <label class="fl" for="auPhone">WhatsApp number</label>
+    <input class="tf" id="auPhone" type="tel" placeholder="e.g. 0803 000 0000" autocomplete="tel">
+    <label class="fl" for="auPass">Password</label>
+    <input class="tf" id="auPass" type="password" placeholder="Your password" autocomplete="current-password">
+    <p id="authMsg" style="font-size:13.5px;color:#a12b2b;min-height:18px;margin-top:10px"></p>
+    <button class="btn btn-ink" id="authGo" style="width:100%;justify-content:center">Log in</button>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center">Your account is saved on this device, like a shop app — use the same phone/browser to track orders.</p>
+  </div>
+</div>
+
+<!-- ORDERS MODAL -->
+<div class="overlay" id="ordersOverlay">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <button class="x" data-close="ordersOverlay" aria-label="Close">✕</button>
+    <h3>My Orders</h3>
+    <p class="sub">Track your orders here. Status moves: Placed → Processing → Completed.</p>
+    <div id="ordersList"></div>
+    <label class="fl" for="trackCode">Have an order code?</label>
+    <div style="display:flex;gap:8px">
+      <input class="tf" id="trackCode" type="text" placeholder="e.g. SPX-4F8K2Q" style="flex:1">
+      <button class="mini-btn" id="trackBtn" style="padding:0 18px">Track</button>
+    </div>
+    <div id="trackResult" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="overlay" id="adminOverlay">
+  <div class="sheet" role="dialog" aria-modal="true" style="max-width:640px">
+    <button class="x" data-close="adminOverlay" aria-label="Close">✕</button>
+    <h3>Owner's Desk</h3>
+    <p class="sub">Orders placed on this device, and your prices. Only you should open this.</p>
+    <div id="adminGate">
+      <label class="fl" for="adPass">Desk passcode</label>
+      <input class="tf" id="adPass" type="password" placeholder="Passcode">
+      <p id="adMsg" style="font-size:13.5px;color:#a12b2b;min-height:18px;margin-top:8px"></p>
+      <button class="btn btn-ink" id="adGo" style="width:100%;justify-content:center">Open desk</button>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:10px">First time here? Whatever you enter becomes your passcode — remember it.</p>
+    </div>
+    <div id="adminBody" style="display:none">
+      <h4 style="margin:6px 0 10px;font-size:16px">Orders on this device</h4>
+      <div id="deskOrders"></div>
+      <h4 style="margin:20px 0 10px;font-size:16px">Prices</h4>
+      <div id="deskProducts"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <input class="tf" id="npName" placeholder="New product name" style="flex:2;min-width:150px">
+        <input class="tf" id="npPrice" type="number" placeholder="Price ₦" style="flex:1;min-width:90px">
+        <button class="mini-btn" id="npAdd">Add product</button>
+      </div>
+      <p style="margin-top:16px"><button class="linklike" id="adChangePass">Change passcode</button> · <button class="linklike" id="adLock">Lock desk</button></p>
+    </div>
+  </div>
+</div>
 
 <!-- ORDER MODAL -->
 <div class="overlay" id="overlay">
@@ -575,5 +679,203 @@ document.getElementById("sendOrder").addEventListener("click", () => {
   open("https://wa.me/" + WA + "?text=" + encodeURIComponent(lines.join("\n")), "_blank");
 });
 </script>
+
+<script>
+/* ===== Accounts, orders & owner's desk (saved on this device, like the original shop) ===== */
+const DB = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+};
+const users = () => DB.get("spx_users", []);
+const ordersAll = () => DB.get("spx_orders", []);
+const me = () => DB.get("spx_current", null);
+async function sha(t) {
+  try {
+    const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+  } catch { let x = 0; for (const c of t) x = (x * 31 + c.charCodeAt(0)) | 0; return "h" + x; }
+}
+const normPhone = p => (p || "").replace(/\D/g, "").replace(/^234/, "0");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* product overrides from the desk */
+(() => {
+  const saved = DB.get("spx_products", null);
+  if (Array.isArray(saved) && saved.length) {
+    PRODUCTS.length = 0;
+    saved.forEach(p => PRODUCTS.push(p));
+    render("all");
+  }
+})();
+
+/* ---------- auth ---------- */
+let authMode = "login";
+const authOverlay = document.getElementById("authOverlay");
+function setMode(m) {
+  authMode = m;
+  document.getElementById("tabLogin").classList.toggle("on", m === "login");
+  document.getElementById("tabSignup").classList.toggle("on", m === "signup");
+  document.getElementById("signupFields").style.display = m === "signup" ? "block" : "none";
+  document.getElementById("authTitle").textContent = m === "signup" ? "Create your account" : "Welcome back";
+  document.getElementById("authGo").textContent = m === "signup" ? "Sign up free" : "Log in";
+  document.getElementById("authMsg").textContent = "";
+}
+document.getElementById("tabLogin").addEventListener("click", () => setMode("login"));
+document.getElementById("tabSignup").addEventListener("click", () => setMode("signup"));
+function refreshAuthUI() {
+  const u = me();
+  document.getElementById("authBtn").style.display = u ? "none" : "";
+  const chip = document.getElementById("userChip");
+  if (u) { chip.style.display = "inline-flex"; chip.textContent = "👤 " + u.name.split(" ")[0] + " · My Orders"; }
+  else chip.style.display = "none";
+}
+document.getElementById("authBtn").addEventListener("click", () => { setMode("login"); authOverlay.classList.add("open"); });
+document.getElementById("userChip").addEventListener("click", openOrders);
+document.getElementById("authGo").addEventListener("click", async () => {
+  const phone = normPhone(document.getElementById("auPhone").value);
+  const pass = document.getElementById("auPass").value;
+  const msg = document.getElementById("authMsg");
+  if (phone.length < 10) { msg.textContent = "Enter a valid WhatsApp number."; return; }
+  if (pass.length < 4) { msg.textContent = "Password must be at least 4 characters."; return; }
+  const list = users();
+  const hash = await sha(pass + "::" + phone);
+  if (authMode === "signup") {
+    const name = document.getElementById("suName").value.trim();
+    if (!name) { msg.textContent = "Enter your name to sign up."; return; }
+    if (list.some(x => x.phone === phone)) { msg.textContent = "That number already has an account — log in instead."; return; }
+    const u = { name, phone, pass: hash, created: Date.now() };
+    list.push(u); DB.set("spx_users", list);
+    DB.set("spx_current", { name, phone });
+  } else {
+    const u = list.find(x => x.phone === phone && x.pass === hash);
+    if (!u) { msg.textContent = "Number or password not correct. New here? Tap Sign up."; return; }
+    DB.set("spx_current", { name: u.name, phone: u.phone });
+  }
+  authOverlay.classList.remove("open");
+  refreshAuthUI();
+});
+refreshAuthUI();
+
+/* ---------- orders ---------- */
+function orderCard(o, showTrack = true) {
+  const steps = ["Placed", "Processing", "Completed"];
+  const idx = o.status === "Cancelled" ? -1 : steps.indexOf(o.status);
+  const track = o.status === "Cancelled"
+    ? '<p style="font-size:13px;color:#a12b2b;font-weight:700;margin-top:8px">This order was cancelled.</p>'
+    : '<div class="track">' + steps.map((s, i) => `<span class="stp ${i <= idx ? "done" : ""}">${s}</span>`).join("") + "</div>";
+  return `<div class="ord">
+    <div class="top"><span class="code">${esc(o.code)} · ${new Date(o.created).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span><span class="st st-${o.status.toLowerCase()}">${o.status}</span></div>
+    <b>${esc(o.product)}</b>
+    <div style="font-size:13.5px;color:var(--muted)">Qty ${o.qty} · Total ${naira(o.total)}</div>
+    ${showTrack ? track : ""}
+  </div>`;
+}
+const ordersOverlay = document.getElementById("ordersOverlay");
+function openOrders() {
+  const u = me();
+  const list = document.getElementById("ordersList");
+  if (!u) {
+    list.innerHTML = '<p class="empty">Log in to see your orders.<br><br><button class="mini-btn" id="goLogin">Log in / Sign up</button></p>';
+    const b = document.getElementById("goLogin");
+    if (b) b.addEventListener("click", () => { ordersOverlay.classList.remove("open"); setMode("login"); authOverlay.classList.add("open"); });
+  } else {
+    const mine = ordersAll().filter(o => o.phone === u.phone).sort((a, b) => b.created - a.created);
+    list.innerHTML = (mine.length ? mine.map(o => orderCard(o)).join("") : '<p class="empty">No orders yet — your orders will appear here once you place one.</p>') + '<p style="text-align:center;margin-top:6px"><button class="linklike" id="logoutBtn">Log out (' + esc(u.name.split(" ")[0]) + ')</button></p>';
+    const lb = document.getElementById("logoutBtn");
+    if (lb) lb.addEventListener("click", () => { localStorage.removeItem("spx_current"); refreshAuthUI(); ordersOverlay.classList.remove("open"); });
+  }
+  document.getElementById("trackResult").innerHTML = "";
+  ordersOverlay.classList.add("open");
+}
+document.getElementById("ordersNav").addEventListener("click", e => { e.preventDefault(); openOrders(); });
+document.getElementById("trackBtn").addEventListener("click", () => {
+  const code = document.getElementById("trackCode").value.trim().toUpperCase();
+  const o = ordersAll().find(x => x.code === code);
+  document.getElementById("trackResult").innerHTML = o ? orderCard(o) : '<p class="empty">No order with that code on this device. Codes look like SPX-4F8K2Q.</p>';
+});
+/* save every order placed through the order sheet */
+document.getElementById("sendOrder").addEventListener("click", () => {
+  if (!current) return;
+  const q = Math.max(1, parseInt(document.getElementById("qVal").value || "1", 10));
+  const u = me();
+  const phone = normPhone(document.getElementById("fPhone").value) || (u ? u.phone : "");
+  const code = "SPX-" + Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+  const all = ordersAll();
+  all.push({ code, phone, name: (document.getElementById("fName").value || (u ? u.name : "")).trim(), product: current.name, qty: q, total: current.price * q, status: "Placed", created: Date.now() });
+  DB.set("spx_orders", all);
+});
+
+/* ---------- owner's desk ---------- */
+const adminOverlay = document.getElementById("adminOverlay");
+let deskOpen = false;
+document.getElementById("adminLink").addEventListener("click", e => {
+  e.preventDefault();
+  document.getElementById("adminGate").style.display = deskOpen ? "none" : "block";
+  document.getElementById("adminBody").style.display = deskOpen ? "block" : "none";
+  if (deskOpen) renderDesk();
+  adminOverlay.classList.add("open");
+});
+document.getElementById("adGo").addEventListener("click", async () => {
+  const v = document.getElementById("adPass").value;
+  const saved = DB.get("spx_admin", null);
+  const hv = await sha("desk::" + v);
+  if (!saved) { DB.set("spx_admin", hv); }
+  else if (saved !== hv) { document.getElementById("adMsg").textContent = "Wrong passcode."; return; }
+  deskOpen = true;
+  document.getElementById("adminGate").style.display = "none";
+  document.getElementById("adminBody").style.display = "block";
+  renderDesk();
+});
+document.getElementById("adLock").addEventListener("click", () => { deskOpen = false; adminOverlay.classList.remove("open"); });
+document.getElementById("adChangePass").addEventListener("click", async () => {
+  const v = prompt("New desk passcode:");
+  if (v && v.length >= 4) { DB.set("spx_admin", await sha("desk::" + v)); alert("Passcode changed."); }
+});
+function renderDesk() {
+  const all = ordersAll().sort((a, b) => b.created - a.created);
+  document.getElementById("deskOrders").innerHTML = all.length ? all.map((o, i) => `
+    <div class="desk-row">
+      <b>${esc(o.code)}</b><span>${esc(o.product)} × ${o.qty} — ${naira(o.total)}</span>
+      <span style="color:var(--muted)">${esc(o.name || "")} ${esc(o.phone || "")}</span>
+      <select data-status="${o.code}">
+        ${["Placed", "Processing", "Completed", "Cancelled"].map(s => `<option ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
+      </select>
+    </div>`).join("") : '<p class="empty">No orders on this device yet.</p>';
+  document.querySelectorAll("[data-status]").forEach(sel => sel.addEventListener("change", () => {
+    const all2 = ordersAll();
+    const o = all2.find(x => x.code === sel.dataset.status);
+    if (o) { o.status = sel.value; DB.set("spx_orders", all2); }
+  }));
+  document.getElementById("deskProducts").innerHTML = PRODUCTS.map((p, i) => `
+    <div class="desk-row">
+      <span style="flex:2;min-width:140px">${esc(p.name)}</span>
+      <span>₦</span><input type="number" value="${p.price}" data-price="${i}" style="width:110px">
+      <button class="mini-btn red" data-del="${i}">Delete</button>
+    </div>`).join("");
+  document.querySelectorAll("[data-price]").forEach(inp => inp.addEventListener("change", () => {
+    PRODUCTS[+inp.dataset.price].price = Math.max(0, parseInt(inp.value || "0", 10));
+    DB.set("spx_products", PRODUCTS); render("all");
+  }));
+  document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    PRODUCTS.splice(+b.dataset.del, 1);
+    DB.set("spx_products", PRODUCTS); render("all"); renderDesk();
+  }));
+}
+document.getElementById("npAdd").addEventListener("click", () => {
+  const name = document.getElementById("npName").value.trim();
+  const price = parseInt(document.getElementById("npPrice").value || "0", 10);
+  if (!name || !price) return;
+  PRODUCTS.push({ id: Date.now(), cat: "accounts", icon: "card", tile: "t7", name, desc: "Available now — order on WhatsApp.", price, unit: "each" });
+  DB.set("spx_products", PRODUCTS); render("all"); renderDesk();
+  document.getElementById("npName").value = ""; document.getElementById("npPrice").value = "";
+});
+
+/* generic overlay close buttons */
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
+  document.getElementById(b.dataset.close).classList.remove("open");
+}));
+[authOverlay, ordersOverlay, adminOverlay].forEach(ov => ov.addEventListener("click", e => { if (e.target === ov) ov.classList.remove("open"); }));
+</script>
+
 </body>
 </html>
