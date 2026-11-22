@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex, nofollow">
+<title>Owner's Desk — Spider Exchange</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:only light;--paper:#f6f3ec;--card:#fffdf7;--ink:#101410;--ink-2:#1a1f1a;--muted:#5c665c;--line:#ddd5bf;--green:#128c4b;--green-deep:#0b6b38;--amber-soft:#fdf3d3}
+*{margin:0;padding:0;box-sizing:border-box}
+html{overflow-x:clip}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+header{padding:20px 0 6px;display:flex;align-items:center;gap:11px}
+header img{width:40px;height:40px;border-radius:11px}
+header .t{font-family:'Fraunces',serif;font-weight:900;font-size:22px}
+header .t em{color:var(--green);font-style:normal}
+.sub{color:var(--muted);font-size:14.5px;margin:2px 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
+h2{font-family:'Fraunces',serif;font-size:21px;margin-bottom:12px}
+label.fl{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+.tf{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-size:15.5px;font-family:inherit;background:#fff;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:var(--ink);color:var(--paper);border:none;border-radius:999px;padding:14px 24px;font-weight:700;font-size:15.5px;cursor:pointer;width:100%}
+.btn:hover{background:var(--green-deep)}
+.msg{font-size:13.5px;color:#a12b2b;min-height:18px;margin-top:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px;background:#fff;font-size:13.5px}
+.row select,.row input{padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit;background:#fff}
+.mini{border:none;border-radius:9px;padding:8px 13px;font-weight:700;font-size:13px;background:var(--ink);color:var(--paper);cursor:pointer}
+.mini.red{background:#b3352c}
+.empty{color:var(--muted);font-size:14.5px;text-align:center;padding:18px 6px}
+.st{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:99px}
+.st-placed{background:#eef0e6;color:#5c665c;border:1px solid var(--line)}
+.st-processing{background:var(--amber-soft);color:#8a5d07;border:1px solid #f0d48a}
+.st-completed{background:#e2f4e8;color:var(--green-deep);border:1px solid #bfe6cd}
+.st-cancelled{background:#fde8e8;color:#a12b2b;border:1px solid #f2b8b8}
+.linklike{background:none;border:none;color:var(--muted);font-weight:600;font-size:13.5px;text-decoration:underline;cursor:pointer}
+.top-links{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.png" alt="Spider Exchange logo">
+    <span class="t">Owner's Desk<em>.</em></span>
+  </header>
+  <p class="sub">Private page — only for the owner of Spider Exchange. <a href="index.html">← Back to the shop</a></p>
+
+  <div class="card" id="gate">
+    <h2>Enter your passcode</h2>
+    <label class="fl" for="adPass">Desk passcode</label>
+    <input class="tf" id="adPass" type="password" inputmode="numeric" placeholder="Passcode" autocomplete="current-password">
+    <p class="msg" id="adMsg"></p>
+    <button class="btn" id="adGo">Open desk</button>
+  </div>
+
+  <div id="deskBody" style="display:none">
+    <div class="top-links">
+      <button class="linklike" id="adChangePass">Change passcode</button>
+      <button class="linklike" id="adLock">Lock desk</button>
+      <button class="linklike" id="adRefresh">Refresh orders</button>
+    </div>
+    <div class="card">
+      <h2>All orders</h2>
+      <div id="deskOrders"><p class="empty">Loading…</p></div>
+    </div>
+    <div class="card">
+      <h2>Prices</h2>
+      <div id="deskProducts"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <input class="tf" id="npName" placeholder="New product name" style="flex:2;min-width:150px;width:auto">
+        <input class="tf" id="npPrice" type="number" placeholder="Price ₦" style="flex:1;min-width:90px;width:auto">
+        <button class="mini" id="npAdd" style="padding:12px 18px">Add product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = "https://tucqsqkaougrxiwcsjdz.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Y3FzcWthb3Vncnhpd2NzamR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0ODc0NjQsImV4cCI6MjExMDA2MzQ2NH0.G-drpDREJ4BjRhNc-sEk89iN0EAkpr4tPI5vRkKKJrw";
+async function rpc(fn, args) {
+  const r = await fetch(SB_URL + "/rest/v1/rpc/" + fn, {
+    method: "POST",
+    headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify(args || {})
+  });
+  if (!r.ok) throw new Error("backend " + r.status);
+  const t = await r.text();
+  try { return JSON.parse(t); } catch { return t; }
+}
+async function sha(t) {
+  try {
+    const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+  } catch { let x = 0; for (const c of t) x = (x * 31 + c.charCodeAt(0)) | 0; return "h" + x; }
+}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const naira = n => "₦" + Number(n || 0).toLocaleString("en-NG");
+let PRODUCTS = [
+  {id:1, cat:"exchange", icon:"swap", tile:"t1", name:"Crypto Exchange — USDT / BTC", desc:"Sell your USDT, BTC or gift cards. Fast payment straight to your bank.", price:1450, unit:"per $1 USDT", tag:"Best rate"},
+  {id:2, cat:"accounts", icon:"fb", tile:"t2", name:"Facebook Account — Aged", desc:"Aged Facebook account, ready to use. Full login details delivered.", price:8500, unit:"per account"},
+  {id:3, cat:"accounts", icon:"ig", tile:"t3", name:"Instagram Account", desc:"Clean Instagram account with followers. No ban, ready to post.", price:12000, unit:"per account"},
+  {id:4, cat:"accounts", icon:"tt", tile:"t4", name:"TikTok Account — USA", desc:"USA TikTok account, monetisable. Ready to post from day one.", price:15000, unit:"per account", tag:"Popular"},
+  {id:5, cat:"numbers", icon:"phone", tile:"t5", name:"TextPlus Number — USA", desc:"USA TextPlus number for verification — WhatsApp, Telegram and more.", price:3500, unit:"per number"},
+  {id:6, cat:"numbers", icon:"phone", tile:"t6", name:"TextPlus Number — UK", desc:"UK number for verification. Fast delivery, works the same way.", price:4000, unit:"per number"},
+  {id:7, cat:"exchange", icon:"card", tile:"t7", name:"PayPal Funds Exchange", desc:"We buy PayPal funds. You send, we pay naira to your bank.", price:1300, unit:"per $1"},
+  {id:8, cat:"accounts", icon:"mail", tile:"t8", name:"Gmail Account — Aged", desc:"Aged Gmail, verified. Good for business and verification.", price:5000, unit:"per account"}
+];
+const deskHash = () => sessionStorage.getItem("spx_desk_hash") || "";
+
+(async () => {
+  try {
+    const saved = await rpc("spider_get_products");
+    if (Array.isArray(saved) && saved.length) PRODUCTS = saved;
+  } catch {}
+  if (deskHash() && (await rpc("spider_desk_state", { p_hash: deskHash() }).catch(() => "bad")) === "ok") openDesk();
+})();
+
+function openDesk() {
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("deskBody").style.display = "block";
+  renderDesk();
+}
+document.getElementById("adGo").addEventListener("click", async () => {
+  const v = document.getElementById("adPass").value;
+  const msg = document.getElementById("adMsg");
+  if (v.length < 4) { msg.textContent = "Passcode must be at least 4 characters."; return; }
+  const hv = await sha("desk::" + v);
+  msg.textContent = "Checking…";
+  try {
+    const state = await rpc("spider_desk_state", { p_hash: hv });
+    if (state === "unset") {
+      const res = await rpc("spider_desk_setup", { p_hash: hv });
+      if (res !== "ok") { msg.textContent = "Could not set the passcode — try again."; return; }
+    } else if (state !== "ok") { msg.textContent = "Wrong passcode."; return; }
+  } catch { msg.textContent = "Connection problem — try again."; return; }
+  sessionStorage.setItem("spx_desk_hash", hv);
+  msg.textContent = "";
+  openDesk();
+});
+document.getElementById("adPass").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("adGo").click(); });
+document.getElementById("adLock").addEventListener("click", () => { sessionStorage.removeItem("spx_desk_hash"); location.reload(); });
+document.getElementById("adRefresh").addEventListener("click", renderDesk);
+document.getElementById("adChangePass").addEventListener("click", async () => {
+  const v = prompt("New desk passcode:");
+  if (!v || v.length < 4) return;
+  const nv = await sha("desk::" + v);
+  const res = await rpc("spider_desk_change_pass", { p_old: deskHash(), p_new: nv }).catch(() => "bad");
+  if (res === "ok") { sessionStorage.setItem("spx_desk_hash", nv); alert("Passcode changed."); }
+  else alert("Could not change the passcode.");
+});
+
+async function renderDesk() {
+  const h = deskHash();
+  let all = [];
+  try { all = await rpc("spider_desk_orders", { p_hash: h }); } catch {}
+  document.getElementById("deskOrders").innerHTML = all.length ? all.map(o => `
+    <div class="row">
+      <b>${esc(o.code)}</b><span class="st st-${String(o.status).toLowerCase()}">${esc(o.status)}</span>
+      <span>${esc(o.product)} × ${o.qty} — ${naira(o.total)}</span>
+      <span style="color:var(--muted)">${esc(o.name || "")} ${esc(o.phone || "")} · ${new Date(o.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+      <select data-status="${esc(o.code)}">
+        ${["Placed", "Processing", "Completed", "Cancelled"].map(s => `<option ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
+      </select>
+      <button class="mini red" data-del-order="${esc(o.code)}">Delete</button>
+    </div>`).join("") : '<p class="empty">No orders yet.</p>';
+  document.querySelectorAll("[data-status]").forEach(sel => sel.addEventListener("change", async () => {
+    await rpc("spider_desk_set_status", { p_hash: h, p_code: sel.dataset.status, p_status: sel.value }).catch(() => {});
+    renderDesk();
+  }));
+  document.querySelectorAll("[data-del-order]").forEach(b => b.addEventListener("click", async () => {
+    await rpc("spider_desk_delete_order", { p_hash: h, p_code: b.dataset.delOrder }).catch(() => {});
+    renderDesk();
+  }));
+  document.getElementById("deskProducts").innerHTML = PRODUCTS.map((p, i) => `
+    <div class="row">
+      <span style="flex:2;min-width:140px">${esc(p.name)}</span>
+      <span>₦</span><input type="number" value="${p.price}" data-price="${i}" style="width:110px">
+      <button class="mini red" data-del="${i}">Delete</button>
+    </div>`).join("");
+  const saveProducts = () => rpc("spider_desk_set_products", { p_hash: h, p_products: PRODUCTS }).catch(() => {});
+  document.querySelectorAll("[data-price]").forEach(inp => inp.addEventListener("change", () => {
+    PRODUCTS[+inp.dataset.price].price = Math.max(0, parseInt(inp.value || "0", 10));
+    saveProducts();
+  }));
+  document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    PRODUCTS.splice(+b.dataset.del, 1);
+    saveProducts(); renderDesk();
+  }));
+}
+document.getElementById("npAdd").addEventListener("click", async () => {
+  const name = document.getElementById("npName").value.trim();
+  const price = parseInt(document.getElementById("npPrice").value || "0", 10);
+  if (!name || !price) return;
+  PRODUCTS.push({ id: Date.now(), cat: "accounts", icon: "card", tile: "t7", name, desc: "Available now — order on WhatsApp.", price, unit: "each" });
+  await rpc("spider_desk_set_products", { p_hash: deskHash(), p_products: PRODUCTS }).catch(() => {});
+  renderDesk();
+  document.getElementById("npName").value = ""; document.getElementById("npPrice").value = "";
+});
+</script>
+</body>
+</html>
