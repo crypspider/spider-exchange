@@ -539,6 +539,7 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
     <input class="tf" id="fPhone" type="tel" placeholder="e.g. 0803 000 0000" autocomplete="tel">
     <label class="fl" for="fNote">Anything else? (optional)</label>
     <textarea class="tf" id="fNote" rows="2" placeholder="Bank name for payout, preferred username, etc."></textarea>
+    <p id="orderConfirm" style="display:none;margin:14px 0;background:#e2f4e8;border:1px solid #bfe6cd;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.55"></p>
     <button class="btn btn-wa" id="sendOrder">
       <svg viewBox="0 0 24 24" fill="currentColor" style="width:19px;height:19px"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.9-4.45 9.9-9.91C21.94 6.45 17.5 2 12.04 2zm0 18.13a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 4.54 0 8.24 3.7 8.24 8.24 0 4.55-3.7 8.24-8.24 8.24zm4.52-6.16c-.25-.13-1.47-.72-1.69-.81-.22-.08-.39-.13-.55.13-.16.25-.63.8-.77.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.55-1.35-.77-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.68.31-.25.25-1 .97-1 2.37s1.02 2.75 1.16 2.94c.15.19 2.01 3.07 4.87 4.3.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.47-.6 1.8-1.22.33-.61.33-1.14.23-1.25-.1-.1-.23-.16-.48-.28z"/></svg>
       Place order on WhatsApp
@@ -681,18 +682,24 @@ document.getElementById("sendOrder").addEventListener("click", () => {
   const name = document.getElementById("fName").value.trim();
   const phone = document.getElementById("fPhone").value.trim();
   const note = document.getElementById("fNote").value.trim();
+  const code = "SPX-" + Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+  window.__spxCode = code;
   const lines = [
     "Hello Spider Exchange, I want to place an order:",
     "",
     "Product: " + current.name,
     "Rate: " + naira(current.price) + " " + current.unit,
     "Quantity: " + q,
-    "Total: " + naira(current.price * q)
+    "Total: " + naira(current.price * q),
+    "Order ID: " + code
   ];
   if (name) lines.push("My name: " + name);
   if (phone) lines.push("My WhatsApp: " + phone);
   if (note) lines.push("Note: " + note);
   open("https://wa.me/" + WA + "?text=" + encodeURIComponent(lines.join("\n")), "_blank");
+  const oc = document.getElementById("orderConfirm");
+  oc.style.display = "block";
+  oc.innerHTML = "<b>Order placed.</b> Your Order ID is <b>" + code + "</b> — save it. You can track this order any time from <b>My Orders</b> at the top of this site.";
 });
 </script>
 
@@ -839,7 +846,7 @@ document.getElementById("sendOrder").addEventListener("click", () => {
   const u = me();
   const phone = normPhone(document.getElementById("fPhone").value) || (u ? u.phone : "");
   const name = (document.getElementById("fName").value || (u ? u.name : "")).trim();
-  const code = "SPX-" + Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+  const code = window.__spxCode || ("SPX-" + Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join(""));
   rpc("spider_place_order", { p_code: code, p_phone: phone, p_name: name, p_product: current.name, p_qty: q, p_total: current.price * q }).catch(() => {});
 });
 
