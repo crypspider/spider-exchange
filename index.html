@@ -308,7 +308,6 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
       <a href="#products">Products</a>
       <a href="#how">How it works</a>
       <a href="#" id="ordersNav">My Orders</a>
-      <a href="#" id="deskNav" class="desk-pill">Owner's Desk</a>
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -454,7 +453,6 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
     <span><b>Spider Exchange</b> — Trusted Exchange &amp; Accounts</span>
     <span>WhatsApp: <b>+234 707 856 6125</b></span>
     <span>© 2026 Spider Exchange. All rights reserved.</span>
-    <span><a href="#" id="adminLink" class="linklike" style="color:var(--muted)">Owner's Desk (Admin)</a></span>
   </div>
 </footer>
 
@@ -499,34 +497,6 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
       <button class="mini-btn" id="trackBtn" style="padding:0 18px">Track</button>
     </div>
     <div id="trackResult" style="margin-top:12px"></div>
-  </div>
-</div>
-
-<!-- ADMIN MODAL -->
-<div class="overlay" id="adminOverlay">
-  <div class="sheet" role="dialog" aria-modal="true" style="max-width:640px">
-    <button class="x" data-close="adminOverlay" aria-label="Close">✕</button>
-    <h3>Owner's Desk</h3>
-    <p class="sub">Every customer's orders, from every device — plus your prices. Only you should open this.</p>
-    <div id="adminGate">
-      <label class="fl" for="adPass">Desk passcode</label>
-      <input class="tf" id="adPass" type="password" placeholder="Passcode">
-      <p id="adMsg" style="font-size:13.5px;color:#a12b2b;min-height:18px;margin-top:8px"></p>
-      <button class="btn btn-ink" id="adGo" style="width:100%;justify-content:center">Open desk</button>
-      <p style="font-size:12.5px;color:var(--muted);margin-top:10px">First time here? Whatever you enter becomes the desk passcode on every device — remember it.</p>
-    </div>
-    <div id="adminBody" style="display:none">
-      <h4 style="margin:6px 0 10px;font-size:16px">All orders</h4>
-      <div id="deskOrders"></div>
-      <h4 style="margin:20px 0 10px;font-size:16px">Prices</h4>
-      <div id="deskProducts"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-        <input class="tf" id="npName" placeholder="New product name" style="flex:2;min-width:150px">
-        <input class="tf" id="npPrice" type="number" placeholder="Price ₦" style="flex:1;min-width:90px">
-        <button class="mini-btn" id="npAdd">Add product</button>
-      </div>
-      <p style="margin-top:16px"><button class="linklike" id="adChangePass">Change passcode</button> · <button class="linklike" id="adLock">Lock desk</button></p>
-    </div>
   </div>
 </div>
 
@@ -858,102 +828,11 @@ document.getElementById("sendOrder").addEventListener("click", () => {
   rpc("spider_place_order", { p_code: code, p_phone: phone, p_name: name, p_product: current.name, p_qty: q, p_total: current.price * q }).catch(() => {});
 });
 
-/* ---------- owner's desk ---------- */
-const adminOverlay = document.getElementById("adminOverlay");
-const deskHash = () => sessionStorage.getItem("spx_desk_hash") || "";
-async function openDesk() {
-  document.getElementById("adminGate").style.display = "none";
-  document.getElementById("adminBody").style.display = "block";
-  await renderDesk();
-}
-document.getElementById("adminLink").addEventListener("click", async e => {
-  e.preventDefault();
-  adminOverlay.classList.add("open");
-  const h = deskHash();
-  if (h && (await rpc("spider_desk_state", { p_hash: h }).catch(() => "bad")) === "ok") { openDesk(); return; }
-  sessionStorage.removeItem("spx_desk_hash");
-  document.getElementById("adminGate").style.display = "block";
-  document.getElementById("adminBody").style.display = "none";
-});
-document.getElementById("deskNav").addEventListener("click", e => { e.preventDefault(); document.getElementById("adminLink").click(); });
-document.getElementById("adGo").addEventListener("click", async () => {
-  const v = document.getElementById("adPass").value;
-  const msg = document.getElementById("adMsg");
-  if (v.length < 4) { msg.textContent = "Passcode must be at least 4 characters."; return; }
-  const hv = await sha("desk::" + v);
-  msg.textContent = "Checking…";
-  try {
-    const state = await rpc("spider_desk_state", { p_hash: hv });
-    if (state === "unset") {
-      const res = await rpc("spider_desk_setup", { p_hash: hv });
-      if (res !== "ok") { msg.textContent = "Could not set the passcode — try again."; return; }
-    } else if (state !== "ok") { msg.textContent = "Wrong passcode."; return; }
-  } catch { msg.textContent = "Connection problem — try again."; return; }
-  sessionStorage.setItem("spx_desk_hash", hv);
-  msg.textContent = "";
-  openDesk();
-});
-document.getElementById("adLock").addEventListener("click", () => { sessionStorage.removeItem("spx_desk_hash"); adminOverlay.classList.remove("open"); });
-document.getElementById("adChangePass").addEventListener("click", async () => {
-  const v = prompt("New desk passcode:");
-  if (!v || v.length < 4) return;
-  const nv = await sha("desk::" + v);
-  const res = await rpc("spider_desk_change_pass", { p_old: deskHash(), p_new: nv }).catch(() => "bad");
-  if (res === "ok") { sessionStorage.setItem("spx_desk_hash", nv); alert("Passcode changed."); }
-  else alert("Could not change the passcode.");
-});
-async function renderDesk() {
-  const h = deskHash();
-  let all = [];
-  try { all = await rpc("spider_desk_orders", { p_hash: h }); } catch {}
-  document.getElementById("deskOrders").innerHTML = all.length ? all.map(o => `
-    <div class="desk-row">
-      <b>${esc(o.code)}</b><span>${esc(o.product)} × ${o.qty} — ${naira(o.total)}</span>
-      <span style="color:var(--muted)">${esc(o.name || "")} ${esc(o.phone || "")}</span>
-      <select data-status="${esc(o.code)}">
-        ${["Placed", "Processing", "Completed", "Cancelled"].map(s => `<option ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
-      </select>
-      <button class="mini-btn red" data-del-order="${esc(o.code)}">Delete</button>
-    </div>`).join("") : '<p class="empty">No orders yet.</p>';
-  document.querySelectorAll("[data-status]").forEach(sel => sel.addEventListener("change", async () => {
-    await rpc("spider_desk_set_status", { p_hash: h, p_code: sel.dataset.status, p_status: sel.value }).catch(() => {});
-  }));
-  document.querySelectorAll("[data-del-order]").forEach(b => b.addEventListener("click", async () => {
-    await rpc("spider_desk_delete_order", { p_hash: h, p_code: b.dataset.delOrder }).catch(() => {});
-    renderDesk();
-  }));
-  document.getElementById("deskProducts").innerHTML = PRODUCTS.map((p, i) => `
-    <div class="desk-row">
-      <span style="flex:2;min-width:140px">${esc(p.name)}</span>
-      <span>₦</span><input type="number" value="${p.price}" data-price="${i}" style="width:110px">
-      <button class="mini-btn red" data-del="${i}">Delete</button>
-    </div>`).join("");
-  const saveProducts = () => rpc("spider_desk_set_products", { p_hash: h, p_products: PRODUCTS }).catch(() => {});
-  document.querySelectorAll("[data-price]").forEach(inp => inp.addEventListener("change", () => {
-    PRODUCTS[+inp.dataset.price].price = Math.max(0, parseInt(inp.value || "0", 10));
-    render("all"); saveProducts();
-  }));
-  document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
-    PRODUCTS.splice(+b.dataset.del, 1);
-    render("all"); saveProducts(); renderDesk();
-  }));
-}
-document.getElementById("npAdd").addEventListener("click", async () => {
-  const name = document.getElementById("npName").value.trim();
-  const price = parseInt(document.getElementById("npPrice").value || "0", 10);
-  if (!name || !price) return;
-  PRODUCTS.push({ id: Date.now(), cat: "accounts", icon: "card", tile: "t7", name, desc: "Available now — order on WhatsApp.", price, unit: "each" });
-  render("all");
-  await rpc("spider_desk_set_products", { p_hash: deskHash(), p_products: PRODUCTS }).catch(() => {});
-  renderDesk();
-  document.getElementById("npName").value = ""; document.getElementById("npPrice").value = "";
-});
-
 /* generic overlay close buttons */
 document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
   document.getElementById(b.dataset.close).classList.remove("open");
 }));
-[authOverlay, ordersOverlay, adminOverlay].forEach(ov => ov.addEventListener("click", e => { if (e.target === ov) ov.classList.remove("open"); }));
+[authOverlay, ordersOverlay].forEach(ov => ov.addEventListener("click", e => { if (e.target === ov) ov.classList.remove("open"); }));
 </script></script>
 
 </body>
