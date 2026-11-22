@@ -458,7 +458,7 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
     <input class="tf" id="auPass" type="password" placeholder="Your password" autocomplete="current-password">
     <p id="authMsg" style="font-size:13.5px;color:#a12b2b;min-height:18px;margin-top:10px"></p>
     <button class="btn btn-ink" id="authGo" style="width:100%;justify-content:center">Log in</button>
-    <p style="font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center">Your account is saved on this device, like a shop app — use the same phone/browser to track orders.</p>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center">Your account is stored securely in our system — log in from any phone or browser to track your orders.</p>
   </div>
 </div>
 
@@ -483,16 +483,16 @@ input.tf:focus,textarea.tf:focus{border-color:var(--green)}
   <div class="sheet" role="dialog" aria-modal="true" style="max-width:640px">
     <button class="x" data-close="adminOverlay" aria-label="Close">✕</button>
     <h3>Owner's Desk</h3>
-    <p class="sub">Orders placed on this device, and your prices. Only you should open this.</p>
+    <p class="sub">Every customer's orders, from every device — plus your prices. Only you should open this.</p>
     <div id="adminGate">
       <label class="fl" for="adPass">Desk passcode</label>
       <input class="tf" id="adPass" type="password" placeholder="Passcode">
       <p id="adMsg" style="font-size:13.5px;color:#a12b2b;min-height:18px;margin-top:8px"></p>
       <button class="btn btn-ink" id="adGo" style="width:100%;justify-content:center">Open desk</button>
-      <p style="font-size:12.5px;color:var(--muted);margin-top:10px">First time here? Whatever you enter becomes your passcode — remember it.</p>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:10px">First time here? Whatever you enter becomes the desk passcode on every device — remember it.</p>
     </div>
     <div id="adminBody" style="display:none">
-      <h4 style="margin:6px 0 10px;font-size:16px">Orders on this device</h4>
+      <h4 style="margin:6px 0 10px;font-size:16px">All orders</h4>
       <div id="deskOrders"></div>
       <h4 style="margin:20px 0 10px;font-size:16px">Prices</h4>
       <div id="deskProducts"></div>
@@ -681,14 +681,24 @@ document.getElementById("sendOrder").addEventListener("click", () => {
 </script>
 
 <script>
-/* ===== Accounts, orders & owner's desk (saved on this device, like the original shop) ===== */
-const DB = {
+/* ===== Accounts, orders & owner's desk — real backend (Supabase) ===== */
+const SB_URL = "https://tucqsqkaougrxiwcsjdz.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Y3FzcWthb3Vncnhpd2NzamR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0ODc0NjQsImV4cCI6MjExMDA2MzQ2NH0.G-drpDREJ4BjRhNc-sEk89iN0EAkpr4tPI5vRkKKJrw";
+async function rpc(fn, args) {
+  const r = await fetch(SB_URL + "/rest/v1/rpc/" + fn, {
+    method: "POST",
+    headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify(args || {})
+  });
+  if (!r.ok) throw new Error("backend " + r.status);
+  const t = await r.text();
+  try { return JSON.parse(t); } catch { return t; }
+}
+const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
   set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 };
-const users = () => DB.get("spx_users", []);
-const ordersAll = () => DB.get("spx_orders", []);
-const me = () => DB.get("spx_current", null);
+const me = () => store.get("spx_current", null);
 async function sha(t) {
   try {
     const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
@@ -698,14 +708,16 @@ async function sha(t) {
 const normPhone = p => (p || "").replace(/\D/g, "").replace(/^234/, "0");
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-/* product overrides from the desk */
-(() => {
-  const saved = DB.get("spx_products", null);
-  if (Array.isArray(saved) && saved.length) {
-    PRODUCTS.length = 0;
-    saved.forEach(p => PRODUCTS.push(p));
-    render("all");
-  }
+/* products: the desk can override the catalogue from the backend */
+(async () => {
+  try {
+    const saved = await rpc("spider_get_products");
+    if (Array.isArray(saved) && saved.length) {
+      PRODUCTS.length = 0;
+      saved.forEach(p => PRODUCTS.push(p));
+      render("all");
+    }
+  } catch {}
 })();
 
 /* ---------- auth ---------- */
@@ -737,114 +749,146 @@ document.getElementById("authGo").addEventListener("click", async () => {
   const msg = document.getElementById("authMsg");
   if (phone.length < 10) { msg.textContent = "Enter a valid WhatsApp number."; return; }
   if (pass.length < 4) { msg.textContent = "Password must be at least 4 characters."; return; }
-  const list = users();
   const hash = await sha(pass + "::" + phone);
-  if (authMode === "signup") {
-    const name = document.getElementById("suName").value.trim();
-    if (!name) { msg.textContent = "Enter your name to sign up."; return; }
-    if (list.some(x => x.phone === phone)) { msg.textContent = "That number already has an account — log in instead."; return; }
-    const u = { name, phone, pass: hash, created: Date.now() };
-    list.push(u); DB.set("spx_users", list);
-    DB.set("spx_current", { name, phone });
-  } else {
-    const u = list.find(x => x.phone === phone && x.pass === hash);
-    if (!u) { msg.textContent = "Number or password not correct. New here? Tap Sign up."; return; }
-    DB.set("spx_current", { name: u.name, phone: u.phone });
-  }
+  msg.textContent = "One moment…";
+  try {
+    if (authMode === "signup") {
+      const name = document.getElementById("suName").value.trim();
+      if (!name) { msg.textContent = "Enter your name to sign up."; return; }
+      const res = await rpc("spider_signup", { p_name: name, p_phone: phone, p_hash: hash });
+      if (res === "exists") { msg.textContent = "That number already has an account — log in instead."; return; }
+      store.set("spx_current", { name, phone, hash });
+    } else {
+      const name = await rpc("spider_login", { p_phone: phone, p_hash: hash });
+      if (!name) { msg.textContent = "Number or password not correct. New here? Tap Sign up."; return; }
+      store.set("spx_current", { name, phone, hash });
+    }
+  } catch { msg.textContent = "Connection problem — check your network and try again."; return; }
   authOverlay.classList.remove("open");
   refreshAuthUI();
 });
 refreshAuthUI();
 
 /* ---------- orders ---------- */
-function orderCard(o, showTrack = true) {
+function orderCard(o) {
   const steps = ["Placed", "Processing", "Completed"];
   const idx = o.status === "Cancelled" ? -1 : steps.indexOf(o.status);
   const track = o.status === "Cancelled"
     ? '<p style="font-size:13px;color:#a12b2b;font-weight:700;margin-top:8px">This order was cancelled.</p>'
     : '<div class="track">' + steps.map((s, i) => `<span class="stp ${i <= idx ? "done" : ""}">${s}</span>`).join("") + "</div>";
+  const date = new Date(o.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   return `<div class="ord">
-    <div class="top"><span class="code">${esc(o.code)} · ${new Date(o.created).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span><span class="st st-${o.status.toLowerCase()}">${o.status}</span></div>
+    <div class="top"><span class="code">${esc(o.code)} · ${date}</span><span class="st st-${String(o.status).toLowerCase()}">${esc(o.status)}</span></div>
     <b>${esc(o.product)}</b>
     <div style="font-size:13.5px;color:var(--muted)">Qty ${o.qty} · Total ${naira(o.total)}</div>
-    ${showTrack ? track : ""}
+    ${track}
   </div>`;
 }
 const ordersOverlay = document.getElementById("ordersOverlay");
-function openOrders() {
+async function openOrders() {
   const u = me();
   const list = document.getElementById("ordersList");
+  ordersOverlay.classList.add("open");
+  document.getElementById("trackResult").innerHTML = "";
   if (!u) {
     list.innerHTML = '<p class="empty">Log in to see your orders.<br><br><button class="mini-btn" id="goLogin">Log in / Sign up</button></p>';
     const b = document.getElementById("goLogin");
     if (b) b.addEventListener("click", () => { ordersOverlay.classList.remove("open"); setMode("login"); authOverlay.classList.add("open"); });
-  } else {
-    const mine = ordersAll().filter(o => o.phone === u.phone).sort((a, b) => b.created - a.created);
-    list.innerHTML = (mine.length ? mine.map(o => orderCard(o)).join("") : '<p class="empty">No orders yet — your orders will appear here once you place one.</p>') + '<p style="text-align:center;margin-top:6px"><button class="linklike" id="logoutBtn">Log out (' + esc(u.name.split(" ")[0]) + ')</button></p>';
+    return;
+  }
+  list.innerHTML = '<p class="empty">Loading your orders…</p>';
+  try {
+    const mine = await rpc("spider_my_orders", { p_phone: u.phone, p_hash: u.hash });
+    list.innerHTML = (mine.length ? mine.map(orderCard).join("") : '<p class="empty">No orders yet — your orders will appear here once you place one.</p>')
+      + '<p style="text-align:center;margin-top:6px"><button class="linklike" id="logoutBtn">Log out (' + esc(u.name.split(" ")[0]) + ')</button></p>';
     const lb = document.getElementById("logoutBtn");
     if (lb) lb.addEventListener("click", () => { localStorage.removeItem("spx_current"); refreshAuthUI(); ordersOverlay.classList.remove("open"); });
-  }
-  document.getElementById("trackResult").innerHTML = "";
-  ordersOverlay.classList.add("open");
+  } catch { list.innerHTML = '<p class="empty">Could not load orders — check your connection and reopen.</p>'; }
 }
 document.getElementById("ordersNav").addEventListener("click", e => { e.preventDefault(); openOrders(); });
-document.getElementById("trackBtn").addEventListener("click", () => {
+document.getElementById("trackBtn").addEventListener("click", async () => {
   const code = document.getElementById("trackCode").value.trim().toUpperCase();
-  const o = ordersAll().find(x => x.code === code);
-  document.getElementById("trackResult").innerHTML = o ? orderCard(o) : '<p class="empty">No order with that code on this device. Codes look like SPX-4F8K2Q.</p>';
+  const box = document.getElementById("trackResult");
+  if (!code) return;
+  box.innerHTML = '<p class="empty">Checking…</p>';
+  try {
+    const rows = await rpc("spider_track", { p_code: code });
+    box.innerHTML = rows.length ? orderCard(rows[0]) : '<p class="empty">No order with that code. Codes look like SPX-4F8K2Q.</p>';
+  } catch { box.innerHTML = '<p class="empty">Connection problem — try again.</p>'; }
 });
-/* save every order placed through the order sheet */
+/* every order placed through the order sheet goes to the backend */
 document.getElementById("sendOrder").addEventListener("click", () => {
   if (!current) return;
   const q = Math.max(1, parseInt(document.getElementById("qVal").value || "1", 10));
   const u = me();
   const phone = normPhone(document.getElementById("fPhone").value) || (u ? u.phone : "");
+  const name = (document.getElementById("fName").value || (u ? u.name : "")).trim();
   const code = "SPX-" + Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
-  const all = ordersAll();
-  all.push({ code, phone, name: (document.getElementById("fName").value || (u ? u.name : "")).trim(), product: current.name, qty: q, total: current.price * q, status: "Placed", created: Date.now() });
-  DB.set("spx_orders", all);
+  rpc("spider_place_order", { p_code: code, p_phone: phone, p_name: name, p_product: current.name, p_qty: q, p_total: current.price * q }).catch(() => {});
 });
 
 /* ---------- owner's desk ---------- */
 const adminOverlay = document.getElementById("adminOverlay");
-let deskOpen = false;
-document.getElementById("adminLink").addEventListener("click", e => {
+const deskHash = () => sessionStorage.getItem("spx_desk_hash") || "";
+async function openDesk() {
+  document.getElementById("adminGate").style.display = "none";
+  document.getElementById("adminBody").style.display = "block";
+  await renderDesk();
+}
+document.getElementById("adminLink").addEventListener("click", async e => {
   e.preventDefault();
-  document.getElementById("adminGate").style.display = deskOpen ? "none" : "block";
-  document.getElementById("adminBody").style.display = deskOpen ? "block" : "none";
-  if (deskOpen) renderDesk();
   adminOverlay.classList.add("open");
+  const h = deskHash();
+  if (h && (await rpc("spider_desk_state", { p_hash: h }).catch(() => "bad")) === "ok") { openDesk(); return; }
+  sessionStorage.removeItem("spx_desk_hash");
+  document.getElementById("adminGate").style.display = "block";
+  document.getElementById("adminBody").style.display = "none";
 });
 document.getElementById("adGo").addEventListener("click", async () => {
   const v = document.getElementById("adPass").value;
-  const saved = DB.get("spx_admin", null);
+  const msg = document.getElementById("adMsg");
+  if (v.length < 4) { msg.textContent = "Passcode must be at least 4 characters."; return; }
   const hv = await sha("desk::" + v);
-  if (!saved) { DB.set("spx_admin", hv); }
-  else if (saved !== hv) { document.getElementById("adMsg").textContent = "Wrong passcode."; return; }
-  deskOpen = true;
-  document.getElementById("adminGate").style.display = "none";
-  document.getElementById("adminBody").style.display = "block";
-  renderDesk();
+  msg.textContent = "Checking…";
+  try {
+    const state = await rpc("spider_desk_state", { p_hash: hv });
+    if (state === "unset") {
+      const res = await rpc("spider_desk_setup", { p_hash: hv });
+      if (res !== "ok") { msg.textContent = "Could not set the passcode — try again."; return; }
+    } else if (state !== "ok") { msg.textContent = "Wrong passcode."; return; }
+  } catch { msg.textContent = "Connection problem — try again."; return; }
+  sessionStorage.setItem("spx_desk_hash", hv);
+  msg.textContent = "";
+  openDesk();
 });
-document.getElementById("adLock").addEventListener("click", () => { deskOpen = false; adminOverlay.classList.remove("open"); });
+document.getElementById("adLock").addEventListener("click", () => { sessionStorage.removeItem("spx_desk_hash"); adminOverlay.classList.remove("open"); });
 document.getElementById("adChangePass").addEventListener("click", async () => {
   const v = prompt("New desk passcode:");
-  if (v && v.length >= 4) { DB.set("spx_admin", await sha("desk::" + v)); alert("Passcode changed."); }
+  if (!v || v.length < 4) return;
+  const nv = await sha("desk::" + v);
+  const res = await rpc("spider_desk_change_pass", { p_old: deskHash(), p_new: nv }).catch(() => "bad");
+  if (res === "ok") { sessionStorage.setItem("spx_desk_hash", nv); alert("Passcode changed."); }
+  else alert("Could not change the passcode.");
 });
-function renderDesk() {
-  const all = ordersAll().sort((a, b) => b.created - a.created);
-  document.getElementById("deskOrders").innerHTML = all.length ? all.map((o, i) => `
+async function renderDesk() {
+  const h = deskHash();
+  let all = [];
+  try { all = await rpc("spider_desk_orders", { p_hash: h }); } catch {}
+  document.getElementById("deskOrders").innerHTML = all.length ? all.map(o => `
     <div class="desk-row">
       <b>${esc(o.code)}</b><span>${esc(o.product)} × ${o.qty} — ${naira(o.total)}</span>
       <span style="color:var(--muted)">${esc(o.name || "")} ${esc(o.phone || "")}</span>
-      <select data-status="${o.code}">
+      <select data-status="${esc(o.code)}">
         ${["Placed", "Processing", "Completed", "Cancelled"].map(s => `<option ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
       </select>
-    </div>`).join("") : '<p class="empty">No orders on this device yet.</p>';
-  document.querySelectorAll("[data-status]").forEach(sel => sel.addEventListener("change", () => {
-    const all2 = ordersAll();
-    const o = all2.find(x => x.code === sel.dataset.status);
-    if (o) { o.status = sel.value; DB.set("spx_orders", all2); }
+      <button class="mini-btn red" data-del-order="${esc(o.code)}">Delete</button>
+    </div>`).join("") : '<p class="empty">No orders yet.</p>';
+  document.querySelectorAll("[data-status]").forEach(sel => sel.addEventListener("change", async () => {
+    await rpc("spider_desk_set_status", { p_hash: h, p_code: sel.dataset.status, p_status: sel.value }).catch(() => {});
+  }));
+  document.querySelectorAll("[data-del-order]").forEach(b => b.addEventListener("click", async () => {
+    await rpc("spider_desk_delete_order", { p_hash: h, p_code: b.dataset.delOrder }).catch(() => {});
+    renderDesk();
   }));
   document.getElementById("deskProducts").innerHTML = PRODUCTS.map((p, i) => `
     <div class="desk-row">
@@ -852,21 +896,24 @@ function renderDesk() {
       <span>₦</span><input type="number" value="${p.price}" data-price="${i}" style="width:110px">
       <button class="mini-btn red" data-del="${i}">Delete</button>
     </div>`).join("");
+  const saveProducts = () => rpc("spider_desk_set_products", { p_hash: h, p_products: PRODUCTS }).catch(() => {});
   document.querySelectorAll("[data-price]").forEach(inp => inp.addEventListener("change", () => {
     PRODUCTS[+inp.dataset.price].price = Math.max(0, parseInt(inp.value || "0", 10));
-    DB.set("spx_products", PRODUCTS); render("all");
+    render("all"); saveProducts();
   }));
   document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
     PRODUCTS.splice(+b.dataset.del, 1);
-    DB.set("spx_products", PRODUCTS); render("all"); renderDesk();
+    render("all"); saveProducts(); renderDesk();
   }));
 }
-document.getElementById("npAdd").addEventListener("click", () => {
+document.getElementById("npAdd").addEventListener("click", async () => {
   const name = document.getElementById("npName").value.trim();
   const price = parseInt(document.getElementById("npPrice").value || "0", 10);
   if (!name || !price) return;
   PRODUCTS.push({ id: Date.now(), cat: "accounts", icon: "card", tile: "t7", name, desc: "Available now — order on WhatsApp.", price, unit: "each" });
-  DB.set("spx_products", PRODUCTS); render("all"); renderDesk();
+  render("all");
+  await rpc("spider_desk_set_products", { p_hash: deskHash(), p_products: PRODUCTS }).catch(() => {});
+  renderDesk();
   document.getElementById("npName").value = ""; document.getElementById("npPrice").value = "";
 });
 
@@ -875,7 +922,7 @@ document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click
   document.getElementById(b.dataset.close).classList.remove("open");
 }));
 [authOverlay, ordersOverlay, adminOverlay].forEach(ov => ov.addEventListener("click", e => { if (e.target === ov) ov.classList.remove("open"); }));
-</script>
+</script></script>
 
 </body>
 </html>
